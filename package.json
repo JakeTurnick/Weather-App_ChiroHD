@@ -1,4 +1,23 @@
 {
+  "name": "my-full-stack-app-monorepo",
+  "version": "1.0.0",
+  "description": "Root package for running client and server simultaneously.",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "concurrently \"npm run server-dev\" \"npm run client-dev\"",
+    
+    "server-dev": "npm run dev --prefix server",
+    "client-dev": "npm start --prefix client/weather-client"
+  },
+  "keywords": [
+    "monorepo",
+    "react",
+    "nodejs",
+    "concurrently"
+  ],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "concurrently": "^9.2.1"
   }
