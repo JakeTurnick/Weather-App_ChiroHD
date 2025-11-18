@@ -1,33 +1,62 @@
-// Basic Express Server Setup
+// --- Requires ---
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+  console.log("Nodejs running locally");
+}
+const axios = require('axios');
+
+// --- Config ---
 const express = require('express');
-const cors = require('cors'); // Required for allowing the React frontend to talk to the backend
+const cors = require('cors');
 const app = express();
-const port = 3001; // Backend API port
+const port = 3001;
+const mapsAPIKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
-// Configure CORS to allow requests from the React development server (default is 3000)
-// If your React app runs on a different port (like 5173 for Vite), update this origin.
+// --- Middleware ---
 app.use(cors({
-    origin: 'http://localhost:5173' // Assuming your React app runs on port 5173 (Vite default)
+    origin: 'http://localhost:3000'
 }));
-
-// Middleware to parse incoming JSON bodies
 app.use(express.json());
 
 // --- API Endpoints ---
+app.post('/api/location-autocomplete', async (req, res) => {
+  const location = await getPlaceAutocompleteHttp(req.body.location);
 
-// Simple root endpoint
-app.get('/', (req, res) => {
-  res.send('Node.js API Server is operational on port 3001.');
-});
-
-// Example API endpoint for the React client to fetch data
-app.get('/api/message', (req, res) => {
-  console.log('API call received on /api/message');
   res.json({
     timestamp: new Date().toISOString(),
-    message: 'Hello from the Node.js backend!' 
+    location
   });
 });
+
+// --- Helper functions ---
+async function getPlaceAutocompleteHttp(inputQuery) {
+  const apiKey = mapsAPIKey;
+  const baseUrl = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+  
+  try {
+    const response = await axios.get(baseUrl, {
+      params: {
+        input: inputQuery,
+        key: apiKey, 
+        // Optional parameters
+        types: 'geocode', 
+        components: 'country:us',
+      }
+    });
+
+    if (response.data.status === 'OK') {
+      console.log('Autocomplete Predictions:', response.data.predictions);
+      return response.data.predictions;
+    } else {
+      console.error('API Status Error:', response.data.status);
+      return [];
+    }
+
+  } catch (error) {
+    console.error('Error calling Google Maps API:', error.message);
+    return [];
+  }
+}
 
 // Start the server
 app.listen(port, () => {
