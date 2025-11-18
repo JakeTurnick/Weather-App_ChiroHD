@@ -1,26 +1,110 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import {useState, useEffect, JSXElementConstructor, ReactElement, ReactNode, ReactPortal} from 'react';
+import * as types from './types'
+
 
 function App() {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<any>([]);
+  const [selectedLocation, setSelectedLocation] = useState<any>();
+
+
+  // debounce search - prevents over submission to api
+  useEffect(() => {
+    if (searchTerm === debouncedSearchTerm) return;
+    
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 1000)
+
+    return () => {
+      clearTimeout(timer);
+    }
+  }, [searchTerm])
+
+  // get location autocomplete
+  useEffect(() => {
+    if (!debouncedSearchTerm) return;
+    
+    (async () => {
+        const locations = await CallApiAsync("http://localhost:3001/api/location-autocomplete", "POST", debouncedSearchTerm)
+        setSearchResults(locations.location)
+        console.log("locations", locations)
+    })();
+  }, [debouncedSearchTerm])
+
+  useEffect(() => {
+    if (selectedLocation == null) return;
+    (async () => {
+      console.log("selected location", selectedLocation.place_id)
+      const geoCode = await CallApiAsync("http://localhost:3001/api/get-geocode", "POST", selectedLocation.place_id)
+      console.log("Geocode: ", (geoCode as types.GeocodeResponse).geocode.results[0].geometry.location)
+
+    })();
+  }, [selectedLocation])
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <p>Search for your weather</p>
+        <input 
+          type="text" 
+          placeholder="Location..." 
+          id='searchBar' 
+          value={searchTerm} 
+          onChange={(e) => { setSearchTerm(e.target.value)}}
+        />
+        <ul id="location-suggestions">
+          { searchResults.length > 0 &&
+            searchResults.map((result: any, index: number) => {
+              return (
+                <li 
+                  key={index}
+                  onClick={() => {
+                    setSearchTerm(result.description)
+                    setSelectedLocation(result)
+                  }}
+                  style={{ 
+                    padding: '10px', 
+                    cursor: 'pointer', 
+                    borderBottom: '1px solid #eee'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#000000af'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#00000000'}>
+                  {result.description}
+                </li>)
+            })
+          }
+        </ul>
+
       </header>
     </div>
   );
+}
+
+
+
+(window as any).CallApiAsync = CallApiAsync;
+
+async function CallApiAsync(url: string, method: string, param: string) {
+
+  try {
+    const response = await fetch(url, {
+      method: method.toUpperCase(),
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        param
+      })
+    });
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.log("error calling API async: ", error)
+  }
 }
 
 export default App;
