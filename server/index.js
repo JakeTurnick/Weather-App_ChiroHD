@@ -39,7 +39,6 @@ app.post('/api/get-geocode', async (req, res) => {
 
 app.post('/api/get-weather', async (req, res) => {
   const forecast = await getWeather(req.body.latitude, req.body.longitude);
-  console.log("api returning forcast: ", forecast)
 
   res.json({
     timestamp: new Date().toISOString(),
@@ -103,7 +102,6 @@ async function getWeather(latitude, longitude) {
     const response = await axios.get(weatherURL);
 
     if (response.status === 'OK' || response.status === 200) {
-      console.log("Weather data: ", response.data);
       return response.data;
     } else {
       console.error('API Status Error:', response.data.status)
