@@ -20,7 +20,7 @@ app.use(express.json());
 
 // --- API Endpoints ---
 app.post('/api/location-autocomplete', async (req, res) => {
-  const location = await getPlaceAutocompleteHttp(req.body.param);
+  const location = await getPlaceAutocompleteHttp(req.body.search);
 
   res.json({
     timestamp: new Date().toISOString(),
@@ -29,11 +29,21 @@ app.post('/api/location-autocomplete', async (req, res) => {
 });
 
 app.post('/api/get-geocode', async (req, res) => {
-  const geocode = await getGeocode(req.body.param);
+  const geocode = await getGeocode(req.body.location);
 
   res.json({
     timestamp: new Date().toISOString(),
     geocode
+  });
+});
+
+app.post('/api/get-weather', async (req, res) => {
+  const forecast = await getWeather(req.body.latitude, req.body.longitude);
+  console.log("api returning forcast: ", forecast)
+
+  res.json({
+    timestamp: new Date().toISOString(),
+    forecast
   });
 });
 
@@ -71,10 +81,9 @@ async function getGeocode(placeID) {
   
   try {
     const response = await axios.get(geoCodeURL);
-    const data = response.data
 
-    if (response.data.status === 'OK' && data.results.length > 0) {
-      console.log('GeoCode data: ', response.data);
+    if (response.data.status === 'OK' && response.data.results.length > 0) {
+      //console.log('GeoCode data: ', response.data);
       return response.data;
     } else {
       console.error('API Status Error:', response.data.status);
@@ -83,6 +92,24 @@ async function getGeocode(placeID) {
 
   } catch (error) {
     console.error('Error calling Google Maps Geocode API:', error.message);
+    return [];
+  }
+}
+
+async function getWeather(latitude, longitude) {
+  const weatherURL = `https://weather.googleapis.com/v1/forecast/days:lookup?key=${GoogleApiKey}&location.latitude=${latitude}&location.longitude=${longitude}&days=7`
+
+  try {
+    const response = await axios.get(weatherURL);
+
+    if (response.status === 'OK' || response.status === 200) {
+      console.log("Weather data: ", response.data);
+      return response.data;
+    } else {
+      console.error('API Status Error:', response.data.status)
+    }
+  } catch (error) {
+    console.error('Error calling Google Maps Weather API:', error.message);
     return [];
   }
 }
