@@ -1,6 +1,7 @@
 import './App.css';
 import {useState, useEffect, JSXElementConstructor, ReactElement, ReactNode, ReactPortal} from 'react';
 import * as types from './types'
+import ForecastCard from './components/forecastCard';
 
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any>([]);
   const [selectedLocation, setSelectedLocation] = useState<any>();
+  const [forecastData, setForecastData] = useState<any>([]);
 
 
   // debounce search - prevents over submission to api
@@ -28,18 +30,22 @@ function App() {
     if (!debouncedSearchTerm) return;
     
     (async () => {
-        const locations = await CallApiAsync("http://localhost:3001/api/location-autocomplete", "POST", debouncedSearchTerm)
+        const locations = await CallApiAsync("http://localhost:3001/api/location-autocomplete", "POST", { search: debouncedSearchTerm})
         setSearchResults(locations.location)
-        console.log("locations", locations)
+        //console.log("locations", locations)
     })();
   }, [debouncedSearchTerm])
 
   useEffect(() => {
     if (selectedLocation == null) return;
     (async () => {
-      console.log("selected location", selectedLocation.place_id)
-      const geoCode = await CallApiAsync("http://localhost:3001/api/get-geocode", "POST", selectedLocation.place_id)
-      console.log("Geocode: ", (geoCode as types.GeocodeResponse).geocode.results[0].geometry.location)
+      const geoCode = await CallApiAsync("http://localhost:3001/api/get-geocode", "POST", { location: selectedLocation.place_id})
+      //console.log("Geocode: ", (geoCode as types.GeocodeResponse).geocode.results[0].geometry.location)
+      const location = (geoCode as types.GeocodeResponse).geocode.results[0].geometry.location
+
+      const forecast = await CallApiAsync("http://localhost:3001/api/get-weather", "POST", { latitude: location.lat, longitude: location.lng});
+      console.log("forecast respones: ", forecast.forecast.forecastDays)
+      setForecastData(forecast.forecast.forecastDays);
 
     })();
   }, [selectedLocation])
@@ -77,6 +83,13 @@ function App() {
             })
           }
         </ul>
+        <div id="forecast_display">
+          { forecastData &&
+            forecastData.map((data: types.ForecastDay) => {
+              return <ForecastCard forecast={data} />
+            })
+          }
+        </div>
 
       </header>
     </div>
@@ -87,7 +100,7 @@ function App() {
 
 (window as any).CallApiAsync = CallApiAsync;
 
-async function CallApiAsync(url: string, method: string, param: string) {
+async function CallApiAsync(url: string, method: string, params: Object) {
 
   try {
     const response = await fetch(url, {
@@ -95,9 +108,7 @@ async function CallApiAsync(url: string, method: string, param: string) {
       headers: {
         'Content-type': 'application/json'
       },
-      body: JSON.stringify({
-        param
-      })
+      body: JSON.stringify(params)
     });
 
     const result = await response.json();

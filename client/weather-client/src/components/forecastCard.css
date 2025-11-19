@@ -1,0 +1,86 @@
+/* ForecastCard.css */
+
+.forecast-card {
+  /* Layout and Sizing */
+  width: 250px;
+  padding: 16px;
+  margin: 8px;
+  /*height: 250px; */
+  
+  /* Appearance */
+  background-color: #0e66a0;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  
+  /* Text */
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+/* Date Header */
+.forecast-card-date {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px dashed #ccc;
+}
+
+/* High/Low Temperature Block */
+.forecast-card-temps {
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+}
+
+.temp-max {
+  font-weight: bold;
+  color: #d9534f; /* Red for high */
+  margin-right: 5px;
+}
+
+.temp-min {
+  font-size: 0.7rem;
+  color: #5bc0de; /* Blue for low */
+}
+
+/* Condition Block */
+.forecast-card-condition {
+  margin-bottom: 20px;
+}
+
+.condition-text {
+  font-size: 1rem;
+  font-style: italic;
+  color: #ffffff;
+  margin-top: 5px;
+}
+
+/* Details Grid */
+.forecast-card-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  text-align: left;
+  font-size: 0.9rem;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.forecast-card-details-grid p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Optional: Style for the image placeholder if used */
+.forecast-card-condition [role="img"] {
+    width: 50px;
+    height: 50px;
+    display: block;
+    margin: 0 auto 5px;
+    /* You would replace this with actual icon styling/image */
+}
