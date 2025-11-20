@@ -53,7 +53,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <p>Search for your weather</p>
+        <p>Search a place, Select a destination, See the weather</p>
         <input 
           type="text" 
           placeholder="Location..." 
