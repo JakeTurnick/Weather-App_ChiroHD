@@ -7,9 +7,9 @@ import ForecastCard from './components/forecastCard';
 function App() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<any>([]);
-  const [selectedLocation, setSelectedLocation] = useState<any>();
-  const [forecastData, setForecastData] = useState<any>([]);
+  const [searchResults, setSearchResults] = useState<types.GPlace[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<types.GPlace>();
+  const [forecastData, setForecastData] = useState<types.ForecastDay[]>([]);
 
 
   // debounce search - prevents over submission to api
@@ -17,38 +17,38 @@ function App() {
     if (searchTerm === debouncedSearchTerm) return;
     
     const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm)
+      setDebouncedSearchTerm(searchTerm);
     }, 1000)
 
     return () => {
       clearTimeout(timer);
     }
-  }, [searchTerm])
+  }, [searchTerm]);
 
   // get location autocomplete
   useEffect(() => {
     if (!debouncedSearchTerm) return;
     
     (async () => {
-        const locations = await CallApiAsync("http://localhost:3001/api/location-autocomplete", "POST", { search: debouncedSearchTerm})
-        setSearchResults(locations.location)
-        //console.log("locations", locations)
+        const locations = await CallApiAsync("http://localhost:3001/api/location-autocomplete", "POST", { search: debouncedSearchTerm});
+        //console.log("locations results: ", locations)
+        setSearchResults(locations.location);
     })();
-  }, [debouncedSearchTerm])
+  }, [debouncedSearchTerm]);
 
   useEffect(() => {
     if (selectedLocation == null) return;
     (async () => {
-      const geoCode = await CallApiAsync("http://localhost:3001/api/get-geocode", "POST", { location: selectedLocation.place_id})
+      const geoCode = await CallApiAsync("http://localhost:3001/api/get-geocode", "POST", { location: selectedLocation.place_id});
       //console.log("Geocode: ", (geoCode as types.GeocodeResponse).geocode.results[0].geometry.location)
-      const location = (geoCode as types.GeocodeResponse).geocode.results[0].geometry.location
+      const location = (geoCode as types.GeocodeResponse).geocode.results[0].geometry.location;
 
       const forecast = await CallApiAsync("http://localhost:3001/api/get-weather", "POST", { latitude: location.lat, longitude: location.lng});
-      console.log("forecast respones: ", forecast.forecast.forecastDays)
+      //console.log("forecast respones: ", forecast.forecast.forecastDays)
       setForecastData(forecast.forecast.forecastDays);
 
     })();
-  }, [selectedLocation])
+  }, [selectedLocation]);
 
   return (
     <div className="App">
@@ -85,8 +85,8 @@ function App() {
         </ul>
         <div id="forecast_display">
           { forecastData &&
-            forecastData.map((data: types.ForecastDay) => {
-              return <ForecastCard forecast={data} />
+            forecastData.map((data: types.ForecastDay, index: number) => {
+              return <ForecastCard forecast={data} key={index}/>
             })
           }
         </div>
@@ -94,11 +94,7 @@ function App() {
       </header>
     </div>
   );
-}
-
-
-
-(window as any).CallApiAsync = CallApiAsync;
+};
 
 async function CallApiAsync(url: string, method: string, params: Object) {
 
@@ -114,8 +110,8 @@ async function CallApiAsync(url: string, method: string, params: Object) {
     const result = await response.json();
     return result;
   } catch (error) {
-    console.log("error calling API async: ", error)
-  }
-}
+    console.log("error calling API async: ", error);
+  };
+};
 
 export default App;

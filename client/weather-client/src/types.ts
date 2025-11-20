@@ -28,6 +28,11 @@ export interface GeocodeResponse {
   };
 }
 
+export interface GPlace {
+  description: string,
+  place_id: string;
+}
+
 // --- WEATHER API ---
 
 /**
